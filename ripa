@@ -1,0 +1,66 @@
+SelEmp1 =
+VAR EmpList = VALUES('Employee_LeadOps'[Employee])
+RETURN
+IF(
+    COUNTROWS(EmpList) >= 1,
+    MAXX(
+        TOPN(1, EmpList, 'Employee_LeadOps'[Employee]),
+        'Employee_LeadOps'[Employee]
+    )
+)
+
+SelEmp2 =
+VAR EmpList = VALUES('Employee_LeadOps'[Employee])
+RETURN
+IF(
+    COUNTROWS(EmpList) >= 2,
+    MAXX(
+        TOPN(1, SKIP(EmpList,1), 'Employee_LeadOps'[Employee]),
+        'Employee_LeadOps'[Employee]
+    )
+)
+
+
+SelEmp3 =
+VAR EmpList = VALUES('Employee_LeadOps'[Employee])
+RETURN
+IF(
+    COUNTROWS(EmpList) >= 3,
+    MAXX(
+        TOPN(1, SKIP(EmpList,2), 'Employee_LeadOps'[Employee]),
+        'Employee_LeadOps'[Employee]
+    )
+)
+
+
+SelEmp4 =
+VAR EmpList = VALUES('Employee_LeadOps'[Employee])
+RETURN
+IF(
+    COUNTROWS(EmpList) >= 4,
+    MAXX(
+        TOPN(1, SKIP(EmpList,3), 'Employee_LeadOps'[Employee]),
+        'Employee_LeadOps'[Employee]
+    )
+)
+
+
+Shape1Color =
+VAR SelectedEmp = [SelEmp1]
+VAR ExpiryDate =
+    CALCULATE(
+        MIN('Roadmap Status by Organization'[Expiry or Due Date]),
+        'Roadmap Status by Organization'[Employee_Clean] = SelectedEmp,
+        'Roadmap Status by Organization'[Module Name] = "MCL CPO ERT Fire Fighting Class B RC UD ILT"
+    )
+VAR DaysLeft = IF(ISBLANK(ExpiryDate), BLANK(), DATEDIFF(TODAY(), ExpiryDate, DAY))
+RETURN
+SWITCH(
+    TRUE(),
+    ISBLANK(SelectedEmp), "#f2f2f2",        -- netral kalau belum dipilih
+    ISBLANK(ExpiryDate), "#f2f2f2",         -- netral kalau nggak ada data
+    DaysLeft < 0, "#8b0000",                -- expired
+    DaysLeft <= 30, "#ff0000",              -- merah terang
+    DaysLeft <= 90, "#ffc000",              -- kuning
+    "#00b050"                               -- hijau aman
+)
