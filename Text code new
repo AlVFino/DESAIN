@@ -1,0 +1,24 @@
+DebugColorFFD = 
+VAR SelectedEmp = [SelEmp1]
+VAR ExpiryDate =
+    CALCULATE(
+        MAX('Roadmap Status by Organization'[Expiry or Due Date]),
+        'Roadmap Status by Organization'[Employee_Clean] = SelectedEmp,
+        'Roadmap Status by Organization'[Module Name] = "MCL CPO ERT Fire Fighting Class D RC UD ILT"
+    )
+VAR DaysLeft = ExpiryDate - TODAY()
+VAR ColorResult = 
+    SWITCH(
+        TRUE(),
+        ISBLANK(SelectedEmp), "#E6E6E6",
+        ISBLANK(ExpiryDate), "#808080",
+        DaysLeft < 0, "#8b0000",
+        DaysLeft <= 30, "#ff0000",
+        DaysLeft <= 90, "#ffc000",
+        "#00b050"
+    )
+RETURN
+"Emp: " & SelectedEmp & 
+" | Exp: " & FORMAT(ExpiryDate, "DD-MMM-YYYY") & 
+" | Days: " & DaysLeft & 
+" | Color: " & ColorResult
