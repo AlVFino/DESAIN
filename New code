@@ -1,0 +1,51 @@
+ShapeC1ColorFFD = 
+VAR SelectedEmp = [SelEmp1]
+VAR CompletionStatus =
+    CALCULATE(
+        MAX('Roadmap Status by Organization'[Completion Status]),
+        'Roadmap Status by Organization'[Employee_Clean] = SelectedEmp,
+        'Roadmap Status by Organization'[Module Name] = "MCL CPO ERT Fire Fighting Class D RC UD ILT"
+    )
+VAR ExpiryDate =
+    CALCULATE(
+        MAX('Roadmap Status by Organization'[Expiry or Due Date]),
+        'Roadmap Status by Organization'[Employee_Clean] = SelectedEmp,
+        'Roadmap Status by Organization'[Module Name] = "MCL CPO ERT Fire Fighting Class D RC UD ILT"
+    )
+VAR DaysLeft = IF(ISBLANK(ExpiryDate), BLANK(), DATEDIFF(TODAY(), ExpiryDate, DAY))
+
+RETURN
+SWITCH(
+    TRUE(),
+    
+    -- Netral kalau belum dipilih employee
+    ISBLANK(SelectedEmp), "#E6E6E6",
+    
+    -- Netral kalau nggak ada data sama sekali
+    ISBLANK(CompletionStatus), "#808080",
+    
+    -- LEVEL 1: Cek Completion Status dulu
+    
+    -- Not Complete → Ungu (F)
+    CompletionStatus = "Not Complete", "#800080",
+    
+    -- Expired (dari status) → Merah medium (D)
+    CompletionStatus = "Expired", "#FF0000",
+    
+    -- Complete tapi No Expiry Date → Hijau terang (A)
+    CompletionStatus = "Complete" && ISBLANK(ExpiryDate), "#00FF00",
+    
+    -- LEVEL 2: Complete dengan Expiry Date, cek berapa hari lagi
+    
+    -- Already Expired (tanggal sudah lewat) → Merah medium (D)
+    CompletionStatus = "Complete" && DaysLeft <= 0, "#FF0000",
+    
+    -- Expires <= 90 Days → Kuning medium (C)
+    CompletionStatus = "Complete" && DaysLeft <= 90, "#FFD700",
+    
+    -- Expires > 90 Days → Hijau medium (B)
+    CompletionStatus = "Complete" && DaysLeft > 90, "#32CD32",
+    
+    -- Default: abu-abu
+    "#808080"
+)
